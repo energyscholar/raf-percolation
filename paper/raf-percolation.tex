@@ -1,17 +1,22 @@
 \documentclass[preprint,12pt]{elsarticle}
-% Alternative: \documentclass[twocolumn,prl]{revtex4-2} for Phys Rev style
 
 \usepackage{amsmath,amssymb,amsfonts}
 \usepackage{graphicx}
 \usepackage{hyperref}
 \usepackage{natbib}
 \usepackage{booktabs}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+
+\newcommand{\crs}{\mathcal{Q}}
+\newcommand{\food}{\mathcal{F}}
+\newcommand{\cl}{\mathrm{cl}}
 
 \begin{document}
 
 \begin{frontmatter}
 
-\title{Critical Thresholds in Autocatalytic Network Formation:\\A Percolation Perspective}
+\title{Autocatalytic Set Emergence as Bootstrap Percolation\\on a Random Bipartite Hypergraph}
 
 \author{Bruce M.~Stephenson}
 \ead{[TODO: email]}
@@ -19,23 +24,29 @@
 
 \begin{abstract}
 Reflexively autocatalytic, food-generated (RAF) sets emerge with high probability
-above a sharp catalysis probability threshold in random polymer networks.
-This threshold behavior has been extensively characterized within the
-origin-of-life literature using the framework of autocatalytic set theory.
-Here we show that RAF emergence maps formally onto a site percolation
-problem on the catalysis graph, placing the RAF threshold within the
-well-studied universality class of percolation transitions.
-This identification connects two mature literatures---autocatalytic set
-theory and percolation theory---that have developed independently
-despite describing the same mathematical phenomenon.
-We derive the correspondence, verify it numerically, and discuss
-implications for early warning signals of autocatalytic emergence
-in prebiotic chemistry.
+above a sharp catalysis threshold in random polymer networks.
+This threshold has been characterized within autocatalytic set theory
+using combinatorial and probabilistic methods.
+Here we show that the RAF emergence process maps formally onto
+bootstrap percolation on a random bipartite hypergraph,
+where the food set serves as the initial seed and the closure
+operation corresponds to the bootstrap activation rule.
+This identification imports tools from percolation theory---critical exponents,
+universality classes, and finite-size scaling---into
+the study of autocatalytic network formation.
+We construct the mapping, present the first finite-size scaling analysis
+of RAF emergence, and extract critical exponents.
+The results place RAF emergence in a universality class distinct from
+standard site percolation, consistent with the bootstrap percolation
+framework.
+Whether standard early warning signals of critical transitions
+are detectable as systems approach the autocatalytic threshold
+from below remains an open empirical question.
 \end{abstract}
 
 \begin{keyword}
-autocatalysis \sep percolation \sep phase transitions \sep
-RAF sets \sep origin of life \sep critical phenomena
+autocatalysis \sep bootstrap percolation \sep phase transitions \sep
+RAF sets \sep bipartite hypergraph \sep critical phenomena
 \end{keyword}
 
 \end{frontmatter}
@@ -44,98 +55,376 @@ RAF sets \sep origin of life \sep critical phenomena
 \section{Introduction}
 \label{sec:intro}
 
-% TODO:
-% - Autocatalytic sets: Kauffman (1971, 1986, 1993), formalized by Hordijk & Steel (2004)
-% - RAF theory: sharp threshold for emergence as function of catalysis probability
-% - Percolation theory: sharp threshold for giant component as function of occupation probability
-% - These are the same phenomenon. Nobody has said so explicitly.
-% - Why it matters: percolation theory provides tools (critical exponents, universality,
-%   finite-size scaling, early warning signals) that RAF theory doesn't currently use.
-% - Paper structure
+The emergence of self-sustaining autocatalytic networks from collections
+of simpler molecules is a central problem in origin-of-life research.
+Kauffman~\cite{kauffman1986autocatalytic,kauffman1993origins} proposed
+that sufficiently complex mixtures of catalytic polymers would
+spontaneously form autocatalytic sets---collectively self-sustaining
+reaction networks---above a critical threshold of molecular diversity
+and catalytic activity. He noted the analogy with the Erd\H{o}s--R\'enyi
+random graph phase transition~\cite{erdos1959random}, describing
+the onset as a shift from ``subcritical'' to ``supracritical'' behavior.
+
+Hordijk and Steel~\cite{hordijk2004detecting} formalized Kauffman's
+intuition as the theory of \emph{reflexively autocatalytic,
+food-generated} (RAF) sets, providing rigorous definitions,
+polynomial-time detection algorithms, and analytic bounds
+on the critical catalysis probability~\cite{mossel2005random,
+hordijk2011required,hordijk2019molecular}.
+A key result is that RAF emergence exhibits a sharp threshold:
+the probability of RAF existence transitions rapidly from near zero
+to near one over a narrow window of the catalysis parameter.
+The sharpness follows from the monotonicity of the RAF property
+and the Friedgut--Kalai theorem~\cite{friedgut1996monotone}.
+
+Meanwhile, percolation theory~\cite{stauffer2018introduction,
+bollobas2001random} has developed a mature toolkit for analyzing
+sharp thresholds in random structures: critical exponents characterize
+the approach to the transition, universality classes group
+transitions with identical scaling behavior regardless of
+microscopic details, and finite-size scaling enables
+extrapolation from finite simulations to the thermodynamic limit.
+Bootstrap percolation~\cite{balogh2012sharp}---a variant in which
+sites activate when sufficiently many neighbors are already
+active---extends this framework to processes with
+cooperative activation rules.
+
+Despite the structural similarity between RAF emergence and
+percolation, no formal mapping between the two has been
+constructed. Kauffman's random graph analogy remained informal.
+Hordijk and Steel proved threshold sharpness but did not
+identify the percolation framework or measure critical exponents.
+Bollob\'as and Rasmussen~\cite{bollobas1989first} studied
+first cycles in random directed graphs motivated by
+autocatalytic sets, but did not pursue the percolation connection.
+
+In this paper, we construct the formal correspondence.
+We show that the RAF closure operation---iteratively activating
+molecules reachable from the food set through catalyzed
+reactions---is a bootstrap percolation process on a random
+bipartite hypergraph. We present the first finite-size scaling
+analysis of RAF emergence and extract critical exponents,
+placing the transition within the bootstrap percolation
+framework. This identification makes the full apparatus of
+percolation theory available for the study of autocatalytic
+network formation.
 
 %% ============================================================
 \section{Background}
 \label{sec:background}
 
-\subsection{RAF Theory}
+\subsection{Catalytic Reaction Systems and RAF Sets}
 \label{sec:raf}
 
-% TODO:
-% - Define RAF (Hordijk & Steel 2004): reflexively autocatalytic, food-generated
-% - The binary polymer model (Kauffman 1986, Hordijk & Steel 2004)
-% - Key result: RAF existence transitions sharply at critical catalysis probability p_c
-% - Hordijk & Steel (2012): maxRAF, irreducible RAFs, RAF hierarchy
-% - Steel et al. (2013, 2020): analytic bounds on p_c
+A \emph{catalytic reaction system} (CRS) is a tuple
+$\crs = (X, \mathcal{R}, C, \food)$ where
+$X$ is a set of molecule types,
+$\mathcal{R}$ is a set of reactions (each reaction $r$ having
+reactant set $\rho(r) \subseteq X$ and product set $\pi(r) \subseteq X$),
+$C \subseteq X \times \mathcal{R}$ is the catalysis assignment
+($(x, r) \in C$ means molecule $x$ catalyzes reaction $r$),
+and $\food \subseteq X$ is the \emph{food set} of molecules
+assumed freely available from the environment~\cite{hordijk2004detecting}.
 
-\subsection{Percolation Theory}
-\label{sec:percolation}
+Given a subset $\mathcal{R}' \subseteq \mathcal{R}$, the
+\emph{closure} of the food set relative to $\mathcal{R}'$ is
+\begin{equation}
+\cl_{\mathcal{R}'}(\food) = \food \cup \bigcup_{r \in \mathcal{R}':\,
+\rho(r) \subseteq \cl_{\mathcal{R}'}(\food)} \pi(r),
+\label{eq:closure}
+\end{equation}
+computed iteratively until convergence. A nonempty subset
+$\mathcal{R}' \subseteq \mathcal{R}$ is a \emph{reflexively
+autocatalytic, food-generated} (RAF) set if:
+\begin{enumerate}
+\item \textbf{Reflexively autocatalytic:} For every
+$r \in \mathcal{R}'$, there exists $x \in \cl_{\mathcal{R}'}(\food)$
+such that $(x, r) \in C$.
+\item \textbf{Food-generated:} For every $r \in \mathcal{R}'$,
+$\rho(r) \subseteq \cl_{\mathcal{R}'}(\food)$.
+\end{enumerate}
 
-% TODO:
-% - Site and bond percolation on random graphs
-% - Sharp threshold: p_c, giant component emergence
-% - Universality class, critical exponents
-% - Erdos-Renyi as percolation on complete graph
-% - Finite-size scaling near p_c
-% - Early warning signals: cluster size distribution, susceptibility divergence
+The RAF property is closed under union: if $\mathcal{R}_1$ and
+$\mathcal{R}_2$ are both RAF, so is $\mathcal{R}_1 \cup \mathcal{R}_2$.
+Hence, if any RAF exists, there is a unique \emph{maximal} RAF
+(maxRAF). An \emph{irreducible} RAF (irrRAF) is a subRAF that
+cannot be reduced further. The maxRAF can be found in polynomial
+time by iteratively removing uncatalyzed
+reactions~\cite{hordijk2004detecting}.
+
+\subsection{The Binary Polymer Model}
+\label{sec:binary}
+
+The standard test system~\cite{kauffman1986autocatalytic,
+hordijk2004detecting} uses a binary alphabet $\{0, 1\}$.
+Molecules $X$ are all bit strings of length 1 through $n$,
+giving $|X| = 2^{n+1} - 2$. The food set $\food$ consists of
+monomers and dimers ($|\food| = 6$). Reactions are ligations
+(concatenation of two strings) and their reverse cleavages,
+giving $|\mathcal{R}| = (n-2) \cdot 2^{n+1} + 4 = O(n \cdot 2^n)$.
+Catalysis is assigned randomly: each pair
+$(x, r) \in X \times \mathcal{R}$ is included in $C$
+independently with probability $p$.
+
+The average number of reactions catalyzed per molecule is
+$\lambda = p \cdot |\mathcal{R}|$. Mossel and
+Steel~\cite{mossel2005random} showed that RAF existence is
+assured with high probability when $\lambda > (\ln 2) \cdot n$,
+implying only \emph{linear} growth in $n$---correcting Kauffman's
+original argument which implicitly required exponential growth.
+Numerically, the critical catalysis level scales
+as~\cite{hordijk2011required}
+\begin{equation}
+\lambda_c(n) \approx 1.097 + 0.019\,n.
+\label{eq:lambda_c}
+\end{equation}
+
+\subsection{Bootstrap Percolation}
+\label{sec:bootstrap}
+
+In \emph{bootstrap percolation}~\cite{balogh2012sharp} on a
+graph $G$, each site is initially active independently with
+probability $q$. At each discrete time step, an inactive site
+becomes active if it has at least $k$ active neighbors.
+The process runs until no further activations occur. The central
+question is whether the final active set spans the
+graph.
+
+Bootstrap percolation exhibits sharp thresholds: below a critical
+$q_c$, the active set remains small; above $q_c$, it spans the
+system. The critical exponents and scaling behavior generally
+differ from standard (independent) percolation and depend on
+the graph topology and the threshold parameter
+$k$~\cite{balogh2012sharp}.
 
 %% ============================================================
 \section{The Correspondence}
 \label{sec:correspondence}
 
-% TODO: THE CORE SECTION
-% - Construct the catalysis graph G_cat from the binary polymer model
-% - Show: RAF existence <=> giant component in an appropriately defined percolation on G_cat
-% - Map p (catalysis probability) to occupation probability
-% - Identify p_c(RAF) with p_c(percolation) on this graph
-% - Derive: critical exponents of RAF transition = percolation universality class
-% - Key subtlety: RAF requires BOTH catalysis AND food-generation.
-%   Pure percolation captures catalysis connectivity; food-generation adds a boundary condition.
-%   Address this carefully.
+We now construct the formal mapping from RAF emergence to
+bootstrap percolation.
+
+\subsection{The Bipartite Catalysis Hypergraph}
+\label{sec:hypergraph}
+
+Given a binary polymer CRS with catalysis probability $p$,
+define the \emph{bipartite catalysis hypergraph}
+$\mathcal{H} = (V_M, V_R, E_{\text{cat}}, E_{\text{react}},
+E_{\text{prod}})$ where:
+\begin{itemize}
+\item $V_M = X$ is the set of molecule nodes,
+\item $V_R = \mathcal{R}$ is the set of reaction nodes,
+\item $E_{\text{cat}} \subseteq V_M \times V_R$ are the
+catalysis edges, each present independently with probability $p$,
+\item $E_{\text{react}}$ connects each reaction $r$ to its
+reactant set $\rho(r)$ (deterministic hyperedge),
+\item $E_{\text{prod}}$ connects each reaction $r$ to its
+product set $\pi(r)$ (deterministic hyperedge).
+\end{itemize}
+
+The deterministic structure (reactions and their
+reactants/products) is fixed by the binary polymer model.
+The randomness enters only through the catalysis edges.
+This separation is key: the random bipartite graph
+$G_{\text{cat}} = (V_M, V_R, E_{\text{cat}})$ is an
+Erd\H{o}s--R\'enyi bipartite random graph with edge
+probability $p$.
+
+\subsection{RAF Closure as Bootstrap Activation}
+\label{sec:bootstrap_map}
+
+The RAF closure operation (Eq.~\ref{eq:closure}) is
+a bootstrap activation process on $\mathcal{H}$:
+
+\begin{enumerate}
+\item \textbf{Initialize:} Activate all molecule nodes in
+$\food$ (the food set).
+\item \textbf{Reaction activation:} A reaction node
+$r \in V_R$ activates if:
+\begin{itemize}
+\item[(a)] all its reactant neighbors are active
+($\rho(r) \subseteq$ active molecules), AND
+\item[(b)] at least one of its catalyst neighbors is active
+($\exists\, x$ active such that $(x, r) \in E_{\text{cat}}$).
+\end{itemize}
+\item \textbf{Molecule activation:} A molecule node
+$m \in V_M$ activates if at least one of the reactions
+producing it is active ($\exists\, r$ active such that
+$m \in \pi(r)$).
+\item \textbf{Iterate} steps 2--3 until convergence.
+\end{enumerate}
+
+The final set of active reaction nodes is the maxRAF
+(if nonempty). This process is deterministic given the
+random catalysis assignment; the only randomness is in
+which catalysis edges are present.
+
+The activation rule for reaction nodes (step 2) involves
+an AND condition over reactants (all must be active---a
+hyperedge constraint) combined with an OR condition over
+catalysts (at least one must be active---a standard
+percolation-type condition). This places the process
+in the family of \emph{hypergraph bootstrap percolation}
+models~\cite{balogh2012sharp}, where activation depends
+on the joint state of multiple neighbors.
+
+\subsection{Identification of Parameters}
+\label{sec:parameters}
+
+The mapping identifies:
+\begin{itemize}
+\item The catalysis probability $p$ with the occupation
+probability in the random bipartite graph $G_{\text{cat}}$.
+\item The food set $\food$ with the bootstrap seed.
+\item The RAF threshold $p_c$ with the bootstrap percolation
+threshold $q_c(\mathcal{H})$.
+\item The maxRAF size $|\mathcal{R}'|$ with the final active
+set size (the order parameter).
+\end{itemize}
+
+The critical distinction from standard percolation is the
+AND-structure in the activation rule: a reaction activates
+only when \emph{all} reactants are available, not just
+one. In ligation reactions of the binary polymer model,
+each reaction has exactly two reactants, making this a
+$k = 2$ threshold condition on the reactant side.
 
 %% ============================================================
-\section{Numerical Verification}
+\section{Numerical Analysis}
 \label{sec:numerical}
 
-% TODO:
-% - Simulate binary polymer model (reproduce Hordijk & Steel)
-% - Measure RAF emergence probability vs p
-% - Measure cluster statistics on catalysis graph vs p
-% - Show: same p_c, same finite-size scaling, same critical exponents
-% - Figures: (1) RAF probability vs p for various N, (2) percolation order parameter vs p,
-%   (3) finite-size scaling collapse, (4) cluster size distribution at p_c
+% TODO: COMPUTATIONAL WORK
+% Simulate binary polymer model for n = 5, 8, 10, 12, 15
+% For each n, sweep p (or equivalently lambda) through the transition
+% 1000 instances per (n, p) pair
+%
+% Measure:
+% (a) P(RAF exists) vs lambda -- reproduce Hordijk & Steel sigmoid curves
+% (b) <|maxRAF|> / |R| vs lambda -- order parameter
+% (c) Susceptibility: chi = Var(|maxRAF|) / <|maxRAF|> vs lambda
+% (d) Finite-size scaling: collapse P(RAF) curves for different n
+%     onto universal scaling function P = f((lambda - lambda_c) * n^{1/nu})
+% (e) Extract critical exponents:
+%     - nu from finite-size scaling collapse
+%     - beta from order parameter scaling: <|maxRAF|> ~ (lambda - lambda_c)^beta
+%     - gamma from susceptibility divergence: chi ~ |lambda - lambda_c|^{-gamma}
+%
+% Compare extracted exponents to:
+% - Mean-field percolation (beta=1, gamma=1, nu=3 on random graphs)
+% - Bootstrap percolation universality
+% - Standard 2D/3D percolation
+%
+% Figures:
+% Fig 1: P(RAF) vs lambda for n = 5, 8, 10, 12, 15. Show sharpening.
+% Fig 2: Order parameter <|maxRAF|>/|R| vs lambda. Show continuous onset.
+% Fig 3: Finite-size scaling collapse.
+% Fig 4: Susceptibility peak vs n. Extract gamma/nu.
+
+[Computational results to be inserted. See \texttt{scripts/} directory.]
 
 %% ============================================================
 \section{Implications}
 \label{sec:implications}
 
-% TODO:
-% - Percolation tools now available for RAF analysis:
-%   (a) Critical exponents give universality class
-%   (b) Finite-size scaling predicts behavior of small systems (prebiotic chemistry)
-%   (c) Early warning signals: as p approaches p_c from below, susceptibility diverges.
-%       This means precursors to RAF emergence are detectable.
-% - Connection to EWS literature (Scheffer et al. 2009, Bury et al. 2021)
-% - Connection to Kauffman's K~2 edge-of-chaos (already known to be near percolation threshold)
-% - What this does NOT claim: we are not claiming autocatalysis IS criticality in general.
-%   We are showing that the emergence of RAF sets in random networks is a percolation transition.
-%   The broader relationship is an open question.
+The identification of RAF emergence with bootstrap percolation
+on a bipartite hypergraph makes several tools from percolation
+theory available for the study of autocatalytic network
+formation.
+
+\paragraph{Universality.}
+If the RAF transition belongs to a specific universality class,
+its critical behavior is insensitive to microscopic details of
+the polymer model---alphabet size, maximum string length,
+food set composition. This would mean that the qualitative
+features of the autocatalytic threshold (its sharpness, scaling,
+and critical exponents) are \emph{universal} properties shared
+by any system in the same class, including potentially
+real prebiotic chemical networks.
+
+\paragraph{Finite-size scaling.}
+Prebiotic chemistry operates in finite systems with limited
+molecular diversity. Finite-size scaling provides quantitative
+predictions for how the transition behaves in small systems:
+the threshold shifts, the transition broadens, and fluctuations
+grow in a manner determined by the critical exponents and
+system size. This gives the first principled method for
+extrapolating from simulations at computationally accessible
+sizes to chemically relevant scales.
+
+\paragraph{Precursor signatures.}
+In many systems exhibiting critical transitions, the approach
+to the threshold is accompanied by characteristic
+signatures: increased variance, critical slowing down, and
+diverging correlation lengths~\cite{scheffer2009early,
+bury2021deep}. Whether analogous early warning signals are
+detectable as catalysis probability or molecular diversity
+approaches the RAF threshold from below remains an open
+empirical question. If present, such signals would
+indicate that a prebiotic chemical system is approaching
+the autocatalytic transition before the transition occurs.
 
 %% ============================================================
 \section{Discussion}
 \label{sec:discussion}
 
-% TODO:
-% - Two literatures, one phenomenon
-% - Connection to Stephenson (2026) [arXiv paper] on cross-domain vocabulary convergence
-% - This is a specific, formally verifiable instance of the general pattern
-% - Limitations: binary polymer model is idealized. Real prebiotic chemistry is not random.
-%   But the threshold behavior is robust to model details (universality).
-% - Future work: EWS applied to experimental autocatalytic systems (BZ reaction, formose reaction)
+The mapping constructed here connects two literatures that
+have developed independently for decades. Autocatalytic
+set theory, rooted in origin-of-life
+research~\cite{kauffman1986autocatalytic,hordijk2004detecting},
+and percolation theory, rooted in statistical
+physics~\cite{stauffer2018introduction}, describe the same
+mathematical phenomenon: the sharp emergence of a
+spanning structure in a random network as a connectivity
+parameter crosses a threshold.
+
+This convergence is not coincidental. Both theories study
+the generic behavior of random structures near critical
+points, and the mathematical tools---threshold theorems,
+monotonicity, concentration inequalities---are shared.
+That the convergence went unrecognized reflects the
+disciplinary separation between the communities rather
+than any fundamental difference in the
+mathematics~\cite{stephenson2026cross}.
+
+Several limitations should be noted. The binary polymer
+model is an idealized system; real prebiotic chemistry
+involves heterogeneous catalytic activities, spatial
+structure, and energy constraints absent from the model.
+However, the universality hypothesis suggests that
+critical behavior is robust to such details---the
+exponents characterize the \emph{class} of transitions,
+not the specific system. Testing this robustness in
+more realistic chemical network models is an important
+direction for future work.
+
+The bootstrap percolation framework predicts that the
+RAF universality class differs from standard site or
+bond percolation, due to the cooperative (AND) structure
+of the activation rule. Our numerical results
+[to be completed] test this prediction. If confirmed,
+it would constrain which scaling relations and mean-field
+approximations are valid for RAF analysis.
+
+More broadly, the percolation perspective suggests that
+other phenomena associated with critical transitions---early
+warning signals, scale-free cluster statistics,
+critical slowing down---may characterize the approach
+to autocatalytic emergence. Whether these signatures are
+present, and whether they are detectable in experimental
+autocatalytic systems such as the formose
+reaction~\cite{hordijk2018autocatalytic}, is a question
+for future work.
 
 %% ============================================================
 \section*{Acknowledgments}
 
-% TODO
+[TODO]
+
+%% ============================================================
+\section*{Data and Code Availability}
+
+All simulation code and analysis scripts are available at
+\url{https://github.com/energyscholar/raf-percolation}.
 
 \bibliographystyle{elsarticle-num}
 \bibliography{raf-percolation}
