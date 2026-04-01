@@ -1,0 +1,32 @@
+# LaTeX build artifacts
+*.aux
+*.bbl
+*.blg
+*.log
+*.out
+*.toc
+*.fdb_latexmk
+*.fls
+*.synctex.gz
+*.run.xml
+*.bcf
+*.nav
+*.snm
+*.vrb
+
+# Editor
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Build output (keep source, not compiled)
+*.pdf
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Data too large for git (document in README)
+data/

@@ -1,0 +1,143 @@
+\documentclass[preprint,12pt]{elsarticle}
+% Alternative: \documentclass[twocolumn,prl]{revtex4-2} for Phys Rev style
+
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{natbib}
+\usepackage{booktabs}
+
+\begin{document}
+
+\begin{frontmatter}
+
+\title{Critical Thresholds in Autocatalytic Network Formation:\\A Percolation Perspective}
+
+\author{Bruce M.~Stephenson}
+\ead{[TODO: email]}
+% \address{[TODO: affiliation]}
+
+\begin{abstract}
+Reflexively autocatalytic, food-generated (RAF) sets emerge with high probability
+above a sharp catalysis probability threshold in random polymer networks.
+This threshold behavior has been extensively characterized within the
+origin-of-life literature using the framework of autocatalytic set theory.
+Here we show that RAF emergence maps formally onto a site percolation
+problem on the catalysis graph, placing the RAF threshold within the
+well-studied universality class of percolation transitions.
+This identification connects two mature literatures---autocatalytic set
+theory and percolation theory---that have developed independently
+despite describing the same mathematical phenomenon.
+We derive the correspondence, verify it numerically, and discuss
+implications for early warning signals of autocatalytic emergence
+in prebiotic chemistry.
+\end{abstract}
+
+\begin{keyword}
+autocatalysis \sep percolation \sep phase transitions \sep
+RAF sets \sep origin of life \sep critical phenomena
+\end{keyword}
+
+\end{frontmatter}
+
+%% ============================================================
+\section{Introduction}
+\label{sec:intro}
+
+% TODO:
+% - Autocatalytic sets: Kauffman (1971, 1986, 1993), formalized by Hordijk & Steel (2004)
+% - RAF theory: sharp threshold for emergence as function of catalysis probability
+% - Percolation theory: sharp threshold for giant component as function of occupation probability
+% - These are the same phenomenon. Nobody has said so explicitly.
+% - Why it matters: percolation theory provides tools (critical exponents, universality,
+%   finite-size scaling, early warning signals) that RAF theory doesn't currently use.
+% - Paper structure
+
+%% ============================================================
+\section{Background}
+\label{sec:background}
+
+\subsection{RAF Theory}
+\label{sec:raf}
+
+% TODO:
+% - Define RAF (Hordijk & Steel 2004): reflexively autocatalytic, food-generated
+% - The binary polymer model (Kauffman 1986, Hordijk & Steel 2004)
+% - Key result: RAF existence transitions sharply at critical catalysis probability p_c
+% - Hordijk & Steel (2012): maxRAF, irreducible RAFs, RAF hierarchy
+% - Steel et al. (2013, 2020): analytic bounds on p_c
+
+\subsection{Percolation Theory}
+\label{sec:percolation}
+
+% TODO:
+% - Site and bond percolation on random graphs
+% - Sharp threshold: p_c, giant component emergence
+% - Universality class, critical exponents
+% - Erdos-Renyi as percolation on complete graph
+% - Finite-size scaling near p_c
+% - Early warning signals: cluster size distribution, susceptibility divergence
+
+%% ============================================================
+\section{The Correspondence}
+\label{sec:correspondence}
+
+% TODO: THE CORE SECTION
+% - Construct the catalysis graph G_cat from the binary polymer model
+% - Show: RAF existence <=> giant component in an appropriately defined percolation on G_cat
+% - Map p (catalysis probability) to occupation probability
+% - Identify p_c(RAF) with p_c(percolation) on this graph
+% - Derive: critical exponents of RAF transition = percolation universality class
+% - Key subtlety: RAF requires BOTH catalysis AND food-generation.
+%   Pure percolation captures catalysis connectivity; food-generation adds a boundary condition.
+%   Address this carefully.
+
+%% ============================================================
+\section{Numerical Verification}
+\label{sec:numerical}
+
+% TODO:
+% - Simulate binary polymer model (reproduce Hordijk & Steel)
+% - Measure RAF emergence probability vs p
+% - Measure cluster statistics on catalysis graph vs p
+% - Show: same p_c, same finite-size scaling, same critical exponents
+% - Figures: (1) RAF probability vs p for various N, (2) percolation order parameter vs p,
+%   (3) finite-size scaling collapse, (4) cluster size distribution at p_c
+
+%% ============================================================
+\section{Implications}
+\label{sec:implications}
+
+% TODO:
+% - Percolation tools now available for RAF analysis:
+%   (a) Critical exponents give universality class
+%   (b) Finite-size scaling predicts behavior of small systems (prebiotic chemistry)
+%   (c) Early warning signals: as p approaches p_c from below, susceptibility diverges.
+%       This means precursors to RAF emergence are detectable.
+% - Connection to EWS literature (Scheffer et al. 2009, Bury et al. 2021)
+% - Connection to Kauffman's K~2 edge-of-chaos (already known to be near percolation threshold)
+% - What this does NOT claim: we are not claiming autocatalysis IS criticality in general.
+%   We are showing that the emergence of RAF sets in random networks is a percolation transition.
+%   The broader relationship is an open question.
+
+%% ============================================================
+\section{Discussion}
+\label{sec:discussion}
+
+% TODO:
+% - Two literatures, one phenomenon
+% - Connection to Stephenson (2026) [arXiv paper] on cross-domain vocabulary convergence
+% - This is a specific, formally verifiable instance of the general pattern
+% - Limitations: binary polymer model is idealized. Real prebiotic chemistry is not random.
+%   But the threshold behavior is robust to model details (universality).
+% - Future work: EWS applied to experimental autocatalytic systems (BZ reaction, formose reaction)
+
+%% ============================================================
+\section*{Acknowledgments}
+
+% TODO
+
+\bibliographystyle{elsarticle-num}
+\bibliography{raf-percolation}
+
+\end{document}
